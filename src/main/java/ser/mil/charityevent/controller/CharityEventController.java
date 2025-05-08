@@ -5,13 +5,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ser.mil.charityevent.controller.request.CharityEventRequest;
-import ser.mil.charityevent.domain.model.CharityEvent;
-import ser.mil.charityevent.domain.service.CharityEventService;
+import ser.mil.charityevent.domain.charity.CharityEventService;
 
 @RestController
 @RequestMapping("/charityEvent")
 public class CharityEventController {
-    private CharityEventService charityEventService;
+    private final CharityEventService charityEventService;
+
     @Autowired
     public CharityEventController(CharityEventService charityEventService) {
         this.charityEventService = charityEventService;
@@ -19,6 +19,6 @@ public class CharityEventController {
 
     @PostMapping("/create")
     public void addCharityEvent(CharityEventRequest charityEventRequest) {
-        charityEventService.addCharityEvent(charityEventRequest.name(),charityEventRequest.currency());
+        charityEventService.addCharityEvent(charityEventRequest.name(), charityEventRequest.currency());
     }
 }
