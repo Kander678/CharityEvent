@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Component
 public class CharityEventService {
-    //Brak white spaceow przed,po nazwie oraz min 3 max 30             NA ANG
+    //No whitespace before or after the name, and length must be between 3 and 30 characters
     private static final String VALID_NAME_REGEX = "^(?! )[A-Za-z0-9 ]{3,30}(?<! )$";
     private final CharityEventRepository charityEventRepository;
 
@@ -22,9 +22,20 @@ public class CharityEventService {
 
     public CharityEvent addCharityEvent(String name, Currency currency) {
         if (!name.matches(VALID_NAME_REGEX)) {
-            throw new DomainException("Invalid event name: must be 3-30 characters, no leading/trailing spaces.", HttpStatus.BAD_REQUEST);
+            throw new DomainException(
+                    "Invalid event name: must be 3-30 characters, no leading/trailing spaces.", HttpStatus.BAD_REQUEST);
         }
-        CharityEvent charityEvent = new CharityEvent(UUID.randomUUID().toString(), name, new Account(BigDecimal.ZERO, currency));
+        if (charityEventRepository.existsByName(name)) {
+            throw new DomainException("Charity event name already exists.", HttpStatus.CONFLICT);
+        }
+        if(currency == null) {
+            throw new DomainException("Currency cannot be null.", HttpStatus.BAD_REQUEST);
+        }
+        CharityEvent charityEvent = new CharityEvent(
+                UUID.randomUUID().toString(),
+                name,
+                new Account(BigDecimal.ZERO, currency));
+
         charityEventRepository.save(charityEvent);
         return charityEvent;
     }

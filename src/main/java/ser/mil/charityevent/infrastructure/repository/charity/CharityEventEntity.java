@@ -7,14 +7,14 @@ import ser.mil.charityevent.domain.Currency;
 public class CharityEventEntity {
     @Id
     private String id;
-    @Column(unique=true)
+    @Column(unique = true)
     private String name;
 
     private double balance;
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-    public CharityEventEntity(String id,String name, Currency currency) {
+    public CharityEventEntity(String id, String name, Currency currency) {
         this.id = id;
         this.name = name;
         this.currency = currency;

@@ -1,7 +1,6 @@
 package ser.mil.charityevent.domain.box.model;
 
 import jakarta.persistence.*;
-import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.infrastructure.repository.charity.CharityEventEntity;
 
