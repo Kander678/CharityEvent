@@ -1,6 +1,5 @@
 package ser.mil.charityevent.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +12,6 @@ import ser.mil.charityevent.domain.charity.CharityEventService;
 public class CharityEventController {
     private final CharityEventService charityEventService;
 
-    @Autowired
     public CharityEventController(CharityEventService charityEventService) {
         this.charityEventService = charityEventService;
     }

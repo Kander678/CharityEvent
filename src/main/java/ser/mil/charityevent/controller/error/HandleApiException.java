@@ -21,7 +21,7 @@ public class HandleApiException {
     public ResponseEntity<ExceptionError> handleIllegalArgumentException(IllegalArgumentException e) {
         String message = e.getMessage();
         if (message != null && message.contains("No enum constant")) {
-            message = "Unsupported currency provided.";
+            message = "Invalid value for one of the fields.";
         }
         ExceptionError error = new ExceptionError(message, LocalDateTime.now(), HttpStatus.BAD_REQUEST.value());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);

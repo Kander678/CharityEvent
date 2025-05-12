@@ -18,10 +18,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CharityEventServiceTest {
     @Mock
-    CharityEventRepository charityEventRepository;
+    private CharityEventRepository charityEventRepository;
 
     @InjectMocks
-    CharityEventService charityEventService;
+    private CharityEventService charityEventService;
 
     @Test
     void shouldCreateCharityEvent_whenValidInput() {

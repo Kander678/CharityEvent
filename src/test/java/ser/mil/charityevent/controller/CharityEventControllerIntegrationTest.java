@@ -71,7 +71,7 @@ class CharityEventControllerIntegrationTest {
                 .uri("/charity-event/create")
                 .bodyValue(charityEventRequest)
                 .exchange()
-                .expectStatus().isEqualTo(409); // Conflict
+                .expectStatus().isEqualTo(409);
     }
 
 }
