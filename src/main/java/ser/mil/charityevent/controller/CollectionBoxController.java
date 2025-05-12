@@ -1,12 +1,9 @@
 package ser.mil.charityevent.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ser.mil.charityevent.controller.request.CollectionBoxRequest;
-import ser.mil.charityevent.domain.model.CollectionBox;
-import ser.mil.charityevent.domain.service.CollectionBoxService;
+import ser.mil.charityevent.domain.box.CollectionBoxService;
 
 @RestController
 @RequestMapping("/collectionBox")

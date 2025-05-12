@@ -1,21 +1,23 @@
-package ser.mil.charityevent.domain.model;
+package ser.mil.charityevent.domain.box.model;
 
 import jakarta.persistence.*;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import ser.mil.charityevent.domain.Currency;
+import ser.mil.charityevent.infrastructure.repository.charity.CharityEventEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity
 public class CollectionBox {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private int id;
 
     private boolean isEmpty;
 
     private boolean isAssigned;
     @ManyToOne
-    private CharityEvent charityEvent;
+    private CharityEventEntity charityEvent;
 
     @ElementCollection
     @MapKeyEnumerated(EnumType.STRING)
@@ -23,9 +25,9 @@ public class CollectionBox {
 
 
     public CollectionBox() {
-        this.isEmpty=true;
-        this.isAssigned=false;
-        this.collectedMoney=new HashMap<>();
+        this.isEmpty = true;
+        this.isAssigned = false;
+        this.collectedMoney = new HashMap<>();
     }
 
     public int getId() {
@@ -52,11 +54,11 @@ public class CollectionBox {
         isAssigned = assigned;
     }
 
-    public CharityEvent getCharityEvent() {
+    public CharityEventEntity getCharityEvent() {
         return charityEvent;
     }
 
-    public void setCharityEvent(CharityEvent charityEvent) {
+    public void setCharityEvent(CharityEventEntity charityEvent) {
         this.charityEvent = charityEvent;
     }
 
