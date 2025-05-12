@@ -7,8 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import ser.mil.charityevent.controller.request.CharityEventRequest;
 import ser.mil.charityevent.domain.Currency;
-import ser.mil.charityevent.infrastructure.repository.charity.CharityEventEntity;
-import ser.mil.charityevent.infrastructure.repository.charity.CharityEventRepositorySQL;
+import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.model.CharityEvent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,7 +19,7 @@ class CharityEventControllerIntegrationTest {
     @Autowired
     private WebTestClient webTestClient;
     @Autowired
-    private CharityEventRepositorySQL charityEventRepositorySQL;
+    private CharityEventRepository charityEventRepository;
 
     @Test
     void shouldAddCharityEvent() {
@@ -36,10 +36,10 @@ class CharityEventControllerIntegrationTest {
                 .expectStatus().isOk();
 
         //Then
-        CharityEventEntity saved = charityEventRepositorySQL.getCharityEventByName(charityEventRequest.name());
+        CharityEvent saved = charityEventRepository.getCharityEventByName(charityEventRequest.name());
         assertNotNull(saved);
-        assertEquals(name, saved.getName());
-        assertEquals(currency, saved.getCurrency());
+        assertEquals(name, saved.name());
+        assertEquals(currency, saved.account().currency());
     }
 
     @Test

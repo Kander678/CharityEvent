@@ -1,0 +1,139 @@
+package ser.mil.charityevent.domain.box;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import ser.mil.charityevent.domain.Currency;
+import ser.mil.charityevent.domain.box.model.CollectionBox;
+import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.model.CharityEvent;
+import ser.mil.charityevent.domain.exception.DomainException;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class CollectionBoxServiceTest {
+
+    @Mock
+    private CollectionBoxRepository collectionBoxRepository;
+
+    @Mock
+    private CharityEventRepository charityEventRepository;
+
+    @InjectMocks
+    private CollectionBoxService collectionBoxService;
+
+    @Test
+    void shouldAddCollectionBox_whenCurrencyValid() {
+        //Given
+        Currency currency = Currency.PLN;
+
+        //When
+        collectionBoxService.addCollectionBox(currency);
+        //Then
+        verify(collectionBoxRepository).save(any(CollectionBox.class));
+    }
+
+    @Test
+    void shouldThrow_whenCurrencyIsNull() {
+        //Given //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.addCollectionBox(null));
+
+        //Then
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    }
+
+    @Test
+    void shouldPairBoxWithEvent_whenValidInput() {
+        //Given
+        String boxId = "123";
+        String eventName = "Charity";
+
+        CollectionBox box = mock(CollectionBox.class);
+        CharityEvent event = new CharityEvent("1",eventName, null);
+
+        when(box.isAssigned()).thenReturn(false);
+        when(box.isEmpty()).thenReturn(true);
+        when(collectionBoxRepository.getById(boxId)).thenReturn(box);
+        when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(event);
+
+        //When
+        collectionBoxService.pairCollectionBoxWithCharityEvent(boxId, eventName);
+
+        //Then
+        verify(box).setCharityEvent(event);
+        verify(box).setAssigned(true);
+        verify(collectionBoxRepository).save(box);
+    }
+
+    @Test
+    void shouldThrow_whenBoxNotEmpty() {
+        //Given
+        String boxId = "1";
+        String eventName = "event";
+
+        CollectionBox box = mock(CollectionBox.class);
+        when(collectionBoxRepository.getById(boxId)).thenReturn(box);
+        when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(new CharityEvent("1",eventName, null));
+        when(box.isAssigned()).thenReturn(false);
+        when(box.isEmpty()).thenReturn(false);
+
+        //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.pairCollectionBoxWithCharityEvent(boxId, eventName));
+
+        //Then
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+    }
+
+    @Test
+    void shouldAddMoney_whenBoxValid() {
+        //Given
+        String boxId = "1";
+        Currency currency = Currency.PLN;
+
+        CollectionBox box = new CollectionBox(boxId, false, true, new HashMap<>());
+        box.setCharityEvent(new CharityEvent("1","Test", null));
+
+        when(collectionBoxRepository.getById(boxId)).thenReturn(box);
+
+        //When
+        collectionBoxService.addMoneyToCollectionBox(currency, 100.0, boxId);
+
+        //Then
+        assertEquals(100.0, box.getCollectedMoney().get(currency));
+        verify(collectionBoxRepository).save(box);
+    }
+
+    @Test
+    void shouldThrow_whenAmountIsNegative() {
+        //Given //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.addMoneyToCollectionBox(Currency.PLN, -1.0, "id"));
+
+        //Then
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    }
+
+    @Test
+    void shouldThrow_whenBoxNotAssignedToEvent() {
+        //Given
+        CollectionBox box = new CollectionBox("id", false, true, new HashMap<>());
+        when(collectionBoxRepository.getById("id")).thenReturn(box);
+
+        //Then
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.addMoneyToCollectionBox(Currency.PLN, 10.0, "id"));
+
+        //Then
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+    }
+}

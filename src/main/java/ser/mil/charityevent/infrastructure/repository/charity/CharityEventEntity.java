@@ -10,7 +10,7 @@ public class CharityEventEntity {
     @Column(unique = true)
     private String name;
 
-    private double balance;
+    private Double balance;
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
@@ -40,11 +40,11 @@ public class CharityEventEntity {
         this.name = name;
     }
 
-    public double getBalance() {
+    public Double getBalance() {
         return balance;
     }
 
-    public void setBalance(double balance) {
+    public void setBalance(Double balance) {
         this.balance = balance;
     }
 

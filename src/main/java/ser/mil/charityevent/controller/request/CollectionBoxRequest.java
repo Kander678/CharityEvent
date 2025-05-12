@@ -1,4 +1,6 @@
 package ser.mil.charityevent.controller.request;
 
-public record CollectionBoxRequest(int name) {
+import ser.mil.charityevent.domain.Currency;
+
+public record CollectionBoxRequest(Currency currency) {
 }
