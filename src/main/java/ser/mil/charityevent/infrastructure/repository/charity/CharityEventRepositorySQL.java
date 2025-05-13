@@ -32,12 +32,21 @@ public class CharityEventRepositorySQL implements CharityEventRepository {
 
 
     private CharityEventEntity mapCharityEventEntity(CharityEvent charityEvent) {
-        return new CharityEventEntity(charityEvent.id(), charityEvent.name(), charityEvent.account().currency());
+        CharityEventEntity entity = new CharityEventEntity();
+        entity.setId(charityEvent.id());
+        entity.setName(charityEvent.name());
+        entity.setCurrency(charityEvent.account().currency());
+        entity.setBalance(charityEvent.account().balance().doubleValue());
+        return entity;
     }
+
 
     private CharityEvent mapCharityEvent(CharityEventEntity entity) {
-        return new CharityEvent(entity.getId(), entity.getName(), new Account(BigDecimal.ZERO, entity.getCurrency()));
+        return new CharityEvent(
+                entity.getId(),
+                entity.getName(),
+                new Account(BigDecimal.valueOf(entity.getBalance()), entity.getCurrency())
+        );
     }
-
 
 }

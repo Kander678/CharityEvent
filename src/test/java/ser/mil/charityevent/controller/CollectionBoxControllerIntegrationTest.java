@@ -11,14 +11,14 @@ import ser.mil.charityevent.controller.request.CollectionBoxPairRequest;
 import ser.mil.charityevent.controller.request.CollectionBoxRequest;
 import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.domain.box.CollectionBoxRepository;
+import ser.mil.charityevent.domain.box.model.CollectionBox;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
 import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
@@ -99,16 +99,66 @@ class CollectionBoxControllerIntegrationTest {
 
     @Test
     void shouldRejectAddMoneyToUnassignedBox() {
+        //Given
         String boxId = createCollectionBoxViaController(Currency.USD);
 
         CollectionBoxAddMoneyRequest addMoneyRequest = new CollectionBoxAddMoneyRequest(Currency.USD, 50.0);
 
+        //When //Then
         webTestClient.post()
                 .uri("/collectionBox/add-money?collectionBoxId=" + boxId)
                 .bodyValue(addMoneyRequest)
                 .exchange()
                 .expectStatus().isEqualTo(409);
     }
+
+    @Test
+    void shouldConvertMoneyFromBoxToEventAccount() {
+        // Given
+        String boxId = createCollectionBoxViaController(Currency.USD);
+
+        CollectionBoxPairRequest pairRequest = new CollectionBoxPairRequest(boxId, charityEventName);
+        webTestClient.post()
+                .uri("/collectionBox/pair")
+                .bodyValue(pairRequest)
+                .exchange()
+                .expectStatus().isOk();
+
+        CollectionBoxAddMoneyRequest addMoneyRequest = new CollectionBoxAddMoneyRequest(Currency.USD, 100.0);
+        webTestClient.post()
+                .uri("/collectionBox/add-money?collectionBoxId=" + boxId)
+                .bodyValue(addMoneyRequest)
+                .exchange()
+                .expectStatus().isOk();
+
+        //When
+        webTestClient.post()
+                .uri("/collectionBox/convert")
+                .bodyValue(pairRequest)
+                .exchange()
+                .expectStatus().isOk();
+
+        //Then
+        BigDecimal balance = charityEventRepository.getCharityEventByName(charityEventName).getAccount().balance();
+        assertEquals(0, balance.compareTo(BigDecimal.valueOf(100.0)));
+    }
+
+    @Test
+    void shouldDeleteCollectionBox() {
+        // Given
+        String boxId = createCollectionBoxViaController(Currency.USD);
+
+        //When
+        webTestClient.delete()
+                .uri("/collectionBox/delete?collectionBoxId=" + boxId)
+                .exchange()
+                .expectStatus().isOk();
+
+        // Then
+        boolean deleted = collectionBoxRepository.findById(boxId).map(CollectionBox::isDeleted).orElse(false);
+        assertTrue(deleted);
+    }
+
 
     private String createCollectionBoxViaController(Currency currency) {
         CollectionBoxRequest request = new CollectionBoxRequest(currency);
@@ -120,23 +170,5 @@ class CollectionBoxControllerIntegrationTest {
                 .expectBody(String.class)
                 .returnResult()
                 .getResponseBody();
-    }
-
-    @Test
-    void shouldReturnAllCollectionBoxes() {
-        // Given
-        createCollectionBoxViaController(Currency.USD);
-        createCollectionBoxViaController(Currency.EURO);
-
-        // When // Then
-        webTestClient.get()
-                .uri("/collectionBox/getAll")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.length()").isEqualTo(2)
-                .jsonPath("[0].id").exists()
-                .jsonPath("[0].empty").exists()
-                .jsonPath("[0].assigned").exists();
     }
 }

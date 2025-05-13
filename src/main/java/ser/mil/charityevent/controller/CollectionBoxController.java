@@ -45,4 +45,14 @@ public class CollectionBoxController {
         return collectionBoxService.getAllDto();
     }
 
+    @PostMapping("/convert")
+    public void convertMoney(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
+        collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
+                collectionBoxPairRequest.collectionBoxId(), collectionBoxPairRequest.charityEventName());
+    }
+
+    @DeleteMapping("/delete")
+    public void deleteCollectionBox(@RequestParam String collectionBoxId) {
+        collectionBoxService.deleteColectionBox(collectionBoxId);
+    }
 }

@@ -39,6 +39,7 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
     @Override
     public List<CollectionBox> getAll() {
         return collectionBoxRepository.findAll().stream()
+                .filter(entity->!entity.isDeleted())
                 .map(this::mapToCollectionBox)
                 .collect(Collectors.toList());
     }
@@ -65,8 +66,10 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
                 entity.isEmpty(),
                 entity.isAssigned(),
                 entity.getCollectedMoney()
+
         );
         collectionBox.setCharityEvent(charityEvent);
+        collectionBox.setDeleted(entity.isDeleted());
 
         return collectionBox;
     }
@@ -77,6 +80,7 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
         entity.setEmpty(collectionBox.isEmpty());
         entity.setAssigned(collectionBox.isAssigned());
         entity.setCollectedMoney(collectionBox.getCollectedMoney());
+        entity.setDeleted(collectionBox.isDeleted());
 
         if (collectionBox.getCharityEvent() != null) {
             CharityEvent charityEvent = collectionBox.getCharityEvent();

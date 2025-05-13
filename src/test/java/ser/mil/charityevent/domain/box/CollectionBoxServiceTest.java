@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.domain.box.model.CollectionBox;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.exception.DomainException;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -136,4 +138,116 @@ class CollectionBoxServiceTest {
         //Then
         assertEquals(HttpStatus.CONFLICT, ex.getStatus());
     }
+
+    @Test
+    void shouldTransferMoneyToEventAccount_whenValidInput() {
+        // Given
+        String boxId = "box1";
+        String eventName = "CharityEvent";
+
+        Map<Currency, Double> collected = new EnumMap<>(Currency.class);
+        collected.put(Currency.PLN, 100.0);
+
+        CollectionBox box = new CollectionBox(boxId, false, true, collected);
+        Account account = new Account(BigDecimal.valueOf(50.00), Currency.PLN);
+        CharityEvent event = new CharityEvent("1", eventName, account);
+
+        when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
+        when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(event);
+
+        // When
+        collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(boxId, eventName);
+
+        // Then
+        assertTrue(box.isEmpty());
+        assertEquals(0.0, box.getCollectedMoney().get(Currency.PLN));
+        assertEquals(BigDecimal.valueOf(150.00), event.getAccount().balance());
+
+        verify(collectionBoxRepository).save(box);
+        verify(charityEventRepository).save(event);
+    }
+
+    @Test
+    void shouldMarkCollectionBoxAsDeleted_whenDeleteCalled() {
+        // Given
+        String boxId = "box1";
+        CollectionBox box = new CollectionBox(boxId, true, false, new HashMap<>());
+
+        when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
+
+        // When
+        collectionBoxService.deleteColectionBox(boxId);
+
+        // Then
+        assertTrue(box.isDeleted());
+        verify(collectionBoxRepository).save(box);
+    }
+    @Test
+    void shouldThrow_whenCollectionBoxNotFound() {
+        //Given
+        when(collectionBoxRepository.findById("notExist")).thenReturn(Optional.empty());
+
+        //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
+                        "notExist", "Event"));
+
+        //Then
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void shouldThrow_whenBoxIsDeleted() {
+        //Given
+        CollectionBox box = new CollectionBox("id", true, false, new HashMap<>());
+        when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
+
+        //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
+                        "id", "Event"));
+
+        //Then
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void shouldThrow_whenCharityEventNotFound() {
+        //Given
+        CollectionBox box = new CollectionBox("id", false, false, new HashMap<>());
+        when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
+        when(charityEventRepository.getCharityEventByName("Missing")).thenReturn(null);
+
+        //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
+                        "id", "Missing"));
+
+        //Then
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void shouldThrow_whenNoMoneyToTransfer() {
+        //Given
+        Map<Currency, Double> collected = new EnumMap<>(Currency.class);
+        collected.put(Currency.PLN, 0.0);
+
+        CollectionBox box = new CollectionBox("id", false, false, collected);
+        Account account = new Account(BigDecimal.ZERO, Currency.PLN);
+        CharityEvent event = new CharityEvent("1", "E", account);
+
+        when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
+        when(charityEventRepository.getCharityEventByName("E")).thenReturn(event);
+
+        //When
+        DomainException ex = assertThrows(DomainException.class,
+                () -> collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
+                        "id", "E"));
+
+        //Then
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    }
+
+
 }
