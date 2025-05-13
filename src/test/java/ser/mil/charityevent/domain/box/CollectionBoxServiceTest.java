@@ -62,7 +62,7 @@ class CollectionBoxServiceTest {
 
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(true);
-        when(collectionBoxRepository.getById(boxId)).thenReturn(box);
+        when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
         when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(event);
 
         //When
@@ -81,7 +81,7 @@ class CollectionBoxServiceTest {
         String eventName = "event";
 
         CollectionBox box = mock(CollectionBox.class);
-        when(collectionBoxRepository.getById(boxId)).thenReturn(box);
+        when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.ofNullable(box));
         when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(new CharityEvent("1",eventName, null));
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(false);
@@ -103,7 +103,7 @@ class CollectionBoxServiceTest {
         CollectionBox box = new CollectionBox(boxId, false, true, new HashMap<>());
         box.setCharityEvent(new CharityEvent("1","Test", null));
 
-        when(collectionBoxRepository.getById(boxId)).thenReturn(box);
+        when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
 
         //When
         collectionBoxService.addMoneyToCollectionBox(currency, 100.0, boxId);
@@ -127,7 +127,7 @@ class CollectionBoxServiceTest {
     void shouldThrow_whenBoxNotAssignedToEvent() {
         //Given
         CollectionBox box = new CollectionBox("id", false, true, new HashMap<>());
-        when(collectionBoxRepository.getById("id")).thenReturn(box);
+        when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
 
         //Then
         DomainException ex = assertThrows(DomainException.class,

@@ -1,10 +1,11 @@
 package ser.mil.charityevent.controller;
 
 import org.springframework.web.bind.annotation.*;
+import ser.mil.charityevent.controller.request.CollectionBoxAddMoneyRequest;
+import ser.mil.charityevent.controller.request.CollectionBoxPairRequest;
 import ser.mil.charityevent.controller.request.CollectionBoxRequest;
-import ser.mil.charityevent.domain.Currency;
+import ser.mil.charityevent.controller.response.CollectionBoxResponse;
 import ser.mil.charityevent.domain.box.CollectionBoxService;
-import ser.mil.charityevent.domain.box.model.CollectionBoxDto;
 
 import java.util.List;
 
@@ -22,18 +23,25 @@ public class CollectionBoxController {
         return collectionBoxService.addCollectionBox(collectionBoxRequest.currency());
     }
 
-    @PostMapping("/pair-collectionBox-with-charityEvent")
-    public void pairCollectionBoxWithCharityEvent(String collectionBoxId, String charityEventName) {
-        collectionBoxService.pairCollectionBoxWithCharityEvent(collectionBoxId, charityEventName);
+    @PostMapping("/pair")
+    public void pairCollectionBoxWithCharityEvent(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
+        collectionBoxService.pairCollectionBoxWithCharityEvent(
+                collectionBoxPairRequest.collectionBoxId(),
+                collectionBoxPairRequest.charityEventName());
     }
 
-    @PostMapping("/addMoney-to-collectionBox")
-    public void addMoneyToCollectionBox(Currency currency, Double amount, String collectionBoxId) {
-        collectionBoxService.addMoneyToCollectionBox(currency, amount, collectionBoxId);
+    @PostMapping("/add-money")
+    public void addMoneyToCollectionBox(
+            @RequestBody CollectionBoxAddMoneyRequest collectionBoxAddMoneyRequest,
+            @RequestParam String collectionBoxId) {
+
+        collectionBoxService.addMoneyToCollectionBox(
+                collectionBoxAddMoneyRequest.currency(),
+                collectionBoxAddMoneyRequest.amount(), collectionBoxId);
     }
 
     @GetMapping("/getAll")
-    public List<CollectionBoxDto> getAllCollectionBoxes() {
+    public List<CollectionBoxResponse> getAllCollectionBoxes() {
         return collectionBoxService.getAllDto();
     }
 

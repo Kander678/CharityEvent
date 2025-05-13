@@ -10,6 +10,7 @@ import ser.mil.charityevent.infrastructure.repository.charity.CharityEventReposi
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -18,7 +19,8 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
     private final CollectionBoxRepositorySpringData collectionBoxRepository;
     private final CharityEventRepositorySpringData charityEventRepository;
 
-    public CollectionBoxRepositorySQL(CollectionBoxRepositorySpringData collectionBoxRepository, CharityEventRepositorySpringData charityEventRepository) {
+    public CollectionBoxRepositorySQL(CollectionBoxRepositorySpringData collectionBoxRepository,
+                                      CharityEventRepositorySpringData charityEventRepository) {
         this.collectionBoxRepository = collectionBoxRepository;
         this.charityEventRepository = charityEventRepository;
     }
@@ -29,12 +31,23 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
     }
 
     @Override
-    public CollectionBox getById(String id) {
-        CollectionBoxEntity entity = collectionBoxRepository.getById(id);
+    public Optional<CollectionBox> findById(String id) {
+        return collectionBoxRepository.findById(id)
+                .map(this::mapToCollectionBox);
+    }
 
+    @Override
+    public List<CollectionBox> getAll() {
+        return collectionBoxRepository.findAll().stream()
+                .map(this::mapToCollectionBox)
+                .collect(Collectors.toList());
+    }
+
+    private CollectionBox mapToCollectionBox(CollectionBoxEntity entity) {
         CharityEvent charityEvent = null;
-        if (entity.getCharityEvent() != null) {
-            CharityEventEntity eventEntity = entity.getCharityEvent();
+
+        CharityEventEntity eventEntity = entity.getCharityEvent();
+        if (eventEntity != null) {
             Account account = new Account(
                     BigDecimal.valueOf(eventEntity.getBalance()),
                     eventEntity.getCurrency()
@@ -53,17 +66,9 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
                 entity.isAssigned(),
                 entity.getCollectedMoney()
         );
-
         collectionBox.setCharityEvent(charityEvent);
 
         return collectionBox;
-    }
-
-    @Override
-    public List<CollectionBox> getAll() {
-        return collectionBoxRepository.findAll().stream()
-                .map(this::mapToCollectionBox)
-                .collect(Collectors.toList());
     }
 
     private CollectionBoxEntity mapToCollectionBoxEntity(CollectionBox collectionBox) {
@@ -86,39 +91,5 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
         }
         return entity;
     }
-
-    private CollectionBox mapToCollectionBox(CollectionBoxEntity entity) {
-        CharityEvent charityEvent = null;
-
-        if (entity.getCharityEvent() != null) {
-            CharityEventEntity eventEntity = entity.getCharityEvent();
-            Account account = null;
-
-            if (eventEntity.getBalance() != null && eventEntity.getCurrency() != null) {
-                account = new Account(
-                        BigDecimal.valueOf(eventEntity.getBalance()),
-                        eventEntity.getCurrency()
-                );
-            }
-
-            charityEvent = new CharityEvent(
-                    eventEntity.getId(),
-                    eventEntity.getName(),
-                    account
-            );
-        }
-
-        CollectionBox collectionBox = new CollectionBox(
-                entity.getId(),
-                entity.isEmpty(),
-                entity.isAssigned(),
-                entity.getCollectedMoney()
-        );
-
-        collectionBox.setCharityEvent(charityEvent);
-
-        return collectionBox;
-    }
-
 
 }

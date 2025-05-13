@@ -3,9 +3,10 @@ package ser.mil.charityevent.domain.box;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import ser.mil.charityevent.controller.mapper.CollectionBoxMapper;
+import ser.mil.charityevent.controller.response.CollectionBoxResponse;
 import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.domain.box.model.CollectionBox;
-import ser.mil.charityevent.domain.box.model.CollectionBoxDto;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.exception.DomainException;
@@ -53,7 +54,7 @@ public class CollectionBoxService {
             throw new DomainException("Charity event name cannot be null or blank.", HttpStatus.BAD_REQUEST);
         }
 
-        CollectionBox collectionBox = collectionBoxRepository.getById(collectionBoxId);
+        CollectionBox collectionBox = getCollectionBoxById(collectionBoxId);
 
         if (collectionBox == null) {
             throw new DomainException("Collection box not found.", HttpStatus.NOT_FOUND);
@@ -64,13 +65,7 @@ public class CollectionBoxService {
             throw new DomainException("Charity event not found.", HttpStatus.NOT_FOUND);
         }
 
-        if (collectionBox.isAssigned()) {
-            throw new DomainException("Collection box is already assigned to an event.", HttpStatus.CONFLICT);
-        }
-
-        if (!collectionBox.isEmpty()) {
-            throw new DomainException("Collection box must be empty before assigning to an event.", HttpStatus.CONFLICT);
-        }
+        verifyCollectionBoxCanPair(collectionBox);
 
         collectionBox.setCharityEvent(charityEvent);
         collectionBox.setAssigned(true);
@@ -89,7 +84,7 @@ public class CollectionBoxService {
             throw new DomainException("Amount must be greater than 0.", HttpStatus.BAD_REQUEST);
         }
 
-        CollectionBox collectionBox = collectionBoxRepository.getById(collectionBoxId);
+        CollectionBox collectionBox = getCollectionBoxById(collectionBoxId);
         if (collectionBox == null) {
             throw new DomainException("Collection box not found.", HttpStatus.NOT_FOUND);
         }
@@ -110,10 +105,25 @@ public class CollectionBoxService {
         return collectionBoxRepository.getAll();
     }
 
-    public List<CollectionBoxDto> getAllDto() {
+    public List<CollectionBoxResponse> getAllDto() {
         return collectionBoxRepository.getAll().stream()
                 .map(CollectionBoxMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+
+    private void verifyCollectionBoxCanPair(CollectionBox collectionBox) {
+        if (collectionBox.isAssigned()) {
+            throw new DomainException("Collection box is already assigned to an event.", HttpStatus.CONFLICT);
+        }
+        if (!collectionBox.isEmpty()) {
+            throw new DomainException("Collection box must be empty before assigning to an event.", HttpStatus.CONFLICT);
+        }
+    }
+
+    private CollectionBox getCollectionBoxById(String id) {
+        return collectionBoxRepository.findById(id).orElseThrow(
+                () -> new DomainException("Collection box not found.", HttpStatus.NOT_FOUND));
     }
 
 }

@@ -10,7 +10,7 @@ public class CharityEventEntity {
     @Column(unique = true)
     private String name;
 
-    private Double balance;
+    private double balance;
     @Enumerated(EnumType.STRING)
     private Currency currency;
 

@@ -1,11 +1,11 @@
-package ser.mil.charityevent.domain.box.model;
+package ser.mil.charityevent.controller.response;
 
-public class CollectionBoxDto {
+public class CollectionBoxResponse {
     private final String id;
     private final boolean isEmpty;
     private final boolean isAssigned;
 
-    public CollectionBoxDto(String id, boolean isEmpty, boolean isAssigned) {
+    public CollectionBoxResponse(String id, boolean isEmpty, boolean isAssigned) {
         this.id = id;
         this.isEmpty = isEmpty;
         this.isAssigned = isAssigned;
