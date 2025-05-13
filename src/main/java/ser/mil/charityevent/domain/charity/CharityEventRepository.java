@@ -6,4 +6,6 @@ public interface CharityEventRepository {
     void save(CharityEvent charityEvent);
 
     boolean existsByName(String name);
+
+    CharityEvent getCharityEventByName(String name);
 }

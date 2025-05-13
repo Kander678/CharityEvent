@@ -1,9 +1,13 @@
 package ser.mil.charityevent.controller;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ser.mil.charityevent.controller.request.CollectionBoxAddMoneyRequest;
+import ser.mil.charityevent.controller.request.CollectionBoxPairRequest;
+import ser.mil.charityevent.controller.request.CollectionBoxRequest;
+import ser.mil.charityevent.controller.response.CollectionBoxResponse;
 import ser.mil.charityevent.domain.box.CollectionBoxService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/collectionBox")
@@ -15,7 +19,30 @@ public class CollectionBoxController {
     }
 
     @PostMapping("/create")
-    public void createCollectionBox() {
-        collectionBoxService.addCollectionBoxService();
+    public String createCollectionBox(@RequestBody CollectionBoxRequest collectionBoxRequest) {
+        return collectionBoxService.addCollectionBox(collectionBoxRequest.currency());
     }
+
+    @PostMapping("/pair")
+    public void pairCollectionBoxWithCharityEvent(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
+        collectionBoxService.pairCollectionBoxWithCharityEvent(
+                collectionBoxPairRequest.collectionBoxId(),
+                collectionBoxPairRequest.charityEventName());
+    }
+
+    @PostMapping("/add-money")
+    public void addMoneyToCollectionBox(
+            @RequestBody CollectionBoxAddMoneyRequest collectionBoxAddMoneyRequest,
+            @RequestParam String collectionBoxId) {
+
+        collectionBoxService.addMoneyToCollectionBox(
+                collectionBoxAddMoneyRequest.currency(),
+                collectionBoxAddMoneyRequest.amount(), collectionBoxId);
+    }
+
+    @GetMapping("/getAll")
+    public List<CollectionBoxResponse> getAllCollectionBoxes() {
+        return collectionBoxService.getAllDto();
+    }
+
 }

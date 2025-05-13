@@ -1,7 +1,9 @@
 package ser.mil.charityevent.infrastructure.repository.box;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ser.mil.charityevent.domain.box.model.CollectionBox;
 
-public interface CollectionBoxRepositorySpringData extends JpaRepository<CollectionBox, String> {
+import java.util.Optional;
+
+public interface CollectionBoxRepositorySpringData extends JpaRepository<CollectionBoxEntity, String> {
+    Optional<CollectionBoxEntity> findById(String id);
 }

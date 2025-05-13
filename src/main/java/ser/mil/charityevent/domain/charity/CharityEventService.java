@@ -28,7 +28,7 @@ public class CharityEventService {
         if (charityEventRepository.existsByName(name)) {
             throw new DomainException("Charity event name already exists.", HttpStatus.CONFLICT);
         }
-        if(currency == null) {
+        if (currency == null) {
             throw new DomainException("Currency cannot be null.", HttpStatus.BAD_REQUEST);
         }
         CharityEvent charityEvent = new CharityEvent(

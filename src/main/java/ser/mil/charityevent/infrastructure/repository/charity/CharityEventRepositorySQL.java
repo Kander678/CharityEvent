@@ -2,7 +2,10 @@ package ser.mil.charityevent.infrastructure.repository.charity;
 
 import org.springframework.stereotype.Component;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
+
+import java.math.BigDecimal;
 
 @Component
 public class CharityEventRepositorySQL implements CharityEventRepository {
@@ -15,7 +18,7 @@ public class CharityEventRepositorySQL implements CharityEventRepository {
 
     @Override
     public void save(CharityEvent charityEvent) {
-        charityRepository.save(mapCharityEvent(charityEvent));
+        charityRepository.save(mapCharityEventEntity(charityEvent));
     }
 
     @Override
@@ -23,12 +26,18 @@ public class CharityEventRepositorySQL implements CharityEventRepository {
         return charityRepository.existsByName(name);
     }
 
-    public CharityEventEntity getCharityEventByName(String name) {
-        return charityRepository.getCharityEventByName(name);
+    public CharityEvent getCharityEventByName(String name) {
+        return mapCharityEvent(charityRepository.getCharityEventByName(name));
     }
 
-    private CharityEventEntity mapCharityEvent(CharityEvent charityEvent) {
+
+    private CharityEventEntity mapCharityEventEntity(CharityEvent charityEvent) {
         return new CharityEventEntity(charityEvent.id(), charityEvent.name(), charityEvent.account().currency());
     }
+
+    private CharityEvent mapCharityEvent(CharityEventEntity entity) {
+        return new CharityEvent(entity.getId(), entity.getName(), new Account(BigDecimal.ZERO, entity.getCurrency()));
+    }
+
 
 }
