@@ -13,6 +13,7 @@ import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.domain.box.CollectionBoxRepository;
 import ser.mil.charityevent.domain.box.model.CollectionBox;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.CharityEventService;
 import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 
@@ -34,6 +35,8 @@ class CollectionBoxControllerIntegrationTest {
     private CharityEventRepository charityEventRepository;
 
     private final static String charityEventName = "TestEvent";
+    @Autowired
+    private CharityEventService charityEventService;
 
     @BeforeEach
     void setup() {
@@ -139,7 +142,7 @@ class CollectionBoxControllerIntegrationTest {
                 .expectStatus().isOk();
 
         //Then
-        BigDecimal balance = charityEventRepository.getCharityEventByName(charityEventName).getAccount().balance();
+        BigDecimal balance = charityEventService.findCharityEventByName(charityEventName).getAccount().balance();
         assertEquals(0, balance.compareTo(BigDecimal.valueOf(100.0)));
     }
 

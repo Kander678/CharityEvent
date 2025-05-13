@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.domain.box.model.CollectionBox;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.CharityEventService;
 import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.exception.DomainException;
@@ -28,6 +29,9 @@ class CollectionBoxServiceTest {
 
     @Mock
     private CharityEventRepository charityEventRepository;
+
+    @Mock
+    private CharityEventService charityEventService;
 
     @InjectMocks
     private CollectionBoxService collectionBoxService;
@@ -65,7 +69,7 @@ class CollectionBoxServiceTest {
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(true);
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
-        when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(event);
+        when(charityEventService.findCharityEventByName(eventName)).thenReturn(event);
 
         //When
         collectionBoxService.pairCollectionBoxWithCharityEvent(boxId, eventName);
@@ -84,7 +88,7 @@ class CollectionBoxServiceTest {
 
         CollectionBox box = mock(CollectionBox.class);
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.ofNullable(box));
-        when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(new CharityEvent("1",eventName, null));
+        when(charityEventService.findCharityEventByName(eventName)).thenReturn(new CharityEvent("1",eventName, null));
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(false);
 
@@ -153,7 +157,7 @@ class CollectionBoxServiceTest {
         CharityEvent event = new CharityEvent("1", eventName, account);
 
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
-        when(charityEventRepository.getCharityEventByName(eventName)).thenReturn(event);
+        when(charityEventService.findCharityEventByName(eventName)).thenReturn(event);
 
         // When
         collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(boxId, eventName);
@@ -176,7 +180,7 @@ class CollectionBoxServiceTest {
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
 
         // When
-        collectionBoxService.deleteColectionBox(boxId);
+        collectionBoxService.deleteCollectionBox(boxId);
 
         // Then
         assertTrue(box.isDeleted());
@@ -216,7 +220,7 @@ class CollectionBoxServiceTest {
         //Given
         CollectionBox box = new CollectionBox("id", false, false, new HashMap<>());
         when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
-        when(charityEventRepository.getCharityEventByName("Missing")).thenReturn(null);
+        when(charityEventService.findCharityEventByName("Missing")).thenReturn(null);
 
         //When
         DomainException ex = assertThrows(DomainException.class,
@@ -238,7 +242,7 @@ class CollectionBoxServiceTest {
         CharityEvent event = new CharityEvent("1", "E", account);
 
         when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
-        when(charityEventRepository.getCharityEventByName("E")).thenReturn(event);
+        when(charityEventService.findCharityEventByName("E")).thenReturn(event);
 
         //When
         DomainException ex = assertThrows(DomainException.class,

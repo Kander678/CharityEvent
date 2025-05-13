@@ -1,11 +1,17 @@
 package ser.mil.charityevent.domain;
 
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CurrencyExchangeService {
-    private static final double EURO_TO_PLN = 4.20;
-    private static final double USD_TO_PLN = 3.80;
+    @Value("${currency.exchange.eur-to-pln}")
+    private double euroToPln;
+
+    @Value("${currency.exchange.usd-to-pln}")
+    private double usdToPln;
+
 
     public double convert(Currency from, Currency to, double amount) {
 
@@ -14,14 +20,14 @@ public class CurrencyExchangeService {
         }
 
         double amountInPln = switch (from) {
-            case EURO -> amount * EURO_TO_PLN;
-            case USD -> amount * USD_TO_PLN;
+            case EURO -> amount * euroToPln;
+            case USD -> amount * usdToPln;
             case PLN -> amount;
         };
 
         double result = switch (to) {
-            case EURO -> amountInPln / EURO_TO_PLN;
-            case USD -> amountInPln / USD_TO_PLN;
+            case EURO -> amountInPln / euroToPln;
+            case USD -> amountInPln / usdToPln;
             case PLN -> amountInPln;
         };
 
