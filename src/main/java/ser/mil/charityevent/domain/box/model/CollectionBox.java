@@ -13,11 +13,21 @@ public class CollectionBox {
     private CharityEvent charityEvent;
     private Map<Currency, Double> collectedMoney;
 
+    private boolean deleted;
+
     public CollectionBox(String id, boolean isEmpty, boolean isAssigned, Map<Currency, Double> collectedMoney) {
         this.id = id;
         this.isEmpty = isEmpty;
         this.isAssigned = isAssigned;
         this.collectedMoney = collectedMoney;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public CharityEvent getCharityEvent() {

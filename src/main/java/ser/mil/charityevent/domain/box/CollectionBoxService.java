@@ -3,29 +3,34 @@ package ser.mil.charityevent.domain.box;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import ser.mil.charityevent.controller.mapper.CollectionBoxMapper;
-import ser.mil.charityevent.controller.response.CollectionBoxResponse;
 import ser.mil.charityevent.domain.Currency;
+import ser.mil.charityevent.domain.CurrencyExchangeService;
 import ser.mil.charityevent.domain.box.model.CollectionBox;
 import ser.mil.charityevent.domain.charity.CharityEventRepository;
+import ser.mil.charityevent.domain.charity.CharityEventService;
+import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.exception.DomainException;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class CollectionBoxService {
     private final CollectionBoxRepository collectionBoxRepository;
     private final CharityEventRepository charityEventRepository;
+    private final CurrencyExchangeService currencyExchangeService;
+    private final CharityEventService charityEventService;
 
     public CollectionBoxService(CollectionBoxRepository collectionBoxRepository,
-                                CharityEventRepository charityEventRepository) {
+                                CharityEventRepository charityEventRepository, CurrencyExchangeService currencyExchangeService, CharityEventService charityEventService) {
         this.collectionBoxRepository = collectionBoxRepository;
         this.charityEventRepository = charityEventRepository;
+        this.currencyExchangeService = currencyExchangeService;
+        this.charityEventService = charityEventService;
     }
 
     public String addCollectionBox(Currency currency) {
@@ -46,24 +51,9 @@ public class CollectionBoxService {
 
     @Transactional
     public void pairCollectionBoxWithCharityEvent(String collectionBoxId, String charityEventName) {
-        if (collectionBoxId == null || collectionBoxId.isBlank()) {
-            throw new DomainException("Collection box ID cannot be null or blank.", HttpStatus.BAD_REQUEST);
-        }
+        CollectionBox collectionBox = verifyCollectionBoxInput(collectionBoxId, charityEventName);
 
-        if (charityEventName == null || charityEventName.isBlank()) {
-            throw new DomainException("Charity event name cannot be null or blank.", HttpStatus.BAD_REQUEST);
-        }
-
-        CollectionBox collectionBox = getCollectionBoxById(collectionBoxId);
-
-        if (collectionBox == null) {
-            throw new DomainException("Collection box not found.", HttpStatus.NOT_FOUND);
-        }
-
-        CharityEvent charityEvent = charityEventRepository.getCharityEventByName(charityEventName);
-        if (charityEvent == null) {
-            throw new DomainException("Charity event not found.", HttpStatus.NOT_FOUND);
-        }
+        CharityEvent charityEvent = charityEventService.getCharityEventByName(charityEventName);
 
         verifyCollectionBoxCanPair(collectionBox);
 
@@ -84,14 +74,13 @@ public class CollectionBoxService {
             throw new DomainException("Amount must be greater than 0.", HttpStatus.BAD_REQUEST);
         }
 
-        CollectionBox collectionBox = getCollectionBoxById(collectionBoxId);
-        if (collectionBox == null) {
-            throw new DomainException("Collection box not found.", HttpStatus.NOT_FOUND);
-        }
-
+        CollectionBox collectionBox = findCollectionBoxById(collectionBoxId);
 
         if (collectionBox.getCharityEvent() == null) {
             throw new DomainException("Collection box is not assigned to any charity event.", HttpStatus.CONFLICT);
+        }
+        if (collectionBox.isDeleted()) {
+            throw new DomainException("Collection box is deleted.", HttpStatus.CONFLICT);
         }
 
         Map<Currency, Double> map = collectionBox.getCollectedMoney();
@@ -101,14 +90,68 @@ public class CollectionBoxService {
         collectionBoxRepository.save(collectionBox);
     }
 
+    public void transferMoneyFromCollectionBoxToEventAccount(String collectionBoxId, String charityEventName) {
+        CollectionBox collectionBox = verifyCollectionBoxInput(collectionBoxId, charityEventName);
+
+        if (collectionBox.isDeleted()) {
+            throw new DomainException("Collection box is deleted.", HttpStatus.CONFLICT);
+        }
+
+        CharityEvent charityEvent = charityEventService.getCharityEventByName(charityEventName);
+
+        Currency targetCurrency = charityEvent.getAccount().currency();
+        Map<Currency, Double> collected = collectionBox.getCollectedMoney();
+
+        double totalInTargetCurrency = calculateTotalInTargetCurrency(collected, targetCurrency);
+
+        if (totalInTargetCurrency <= 0) {
+            throw new DomainException("No money to transfer after conversion.", HttpStatus.BAD_REQUEST);
+        }
+
+        BigDecimal updatedBalance = charityEvent.getAccount().balance().add(BigDecimal.valueOf(totalInTargetCurrency));
+        charityEvent.setAccount(new Account(updatedBalance, targetCurrency));
+
+        collected.replaceAll((k, v) -> 0.0);
+        collectionBox.setEmpty(true);
+
+        collectionBoxRepository.save(collectionBox);
+        charityEventRepository.save(charityEvent);
+    }
+
+    public void deleteCollectionBox(String id) {
+        CollectionBox collectionBox = findCollectionBoxById(id);
+        if (collectionBox.isDeleted()) {
+            throw new DomainException("Colection box already deleted.", HttpStatus.CONFLICT);
+        }
+
+        collectionBox.setDeleted(true);
+        collectionBoxRepository.save(collectionBox);
+    }
+
     public List<CollectionBox> getAll() {
         return collectionBoxRepository.getAll();
     }
 
-    public List<CollectionBoxResponse> getAllDto() {
-        return collectionBoxRepository.getAll().stream()
-                .map(CollectionBoxMapper::toDto)
-                .collect(Collectors.toList());
+    private double calculateTotalInTargetCurrency(Map<Currency, Double> collected, Currency targetCurrency) {
+        double totalInTargetCurrency = 0.0;
+
+        for (Map.Entry<Currency, Double> entry : collected.entrySet()) {
+            Currency sourceCurrency = entry.getKey();
+            double amount = entry.getValue();
+
+            if (amount <= 0) continue;
+
+            double convertedAmount;
+            if (sourceCurrency == targetCurrency) {
+                convertedAmount = amount;
+            } else {
+                convertedAmount = currencyExchangeService.convert(sourceCurrency, targetCurrency, amount);
+            }
+
+
+            totalInTargetCurrency += convertedAmount;
+        }
+        return totalInTargetCurrency;
     }
 
 
@@ -121,9 +164,21 @@ public class CollectionBoxService {
         }
     }
 
-    private CollectionBox getCollectionBoxById(String id) {
+    private CollectionBox findCollectionBoxById(String id) {
         return collectionBoxRepository.findById(id).orElseThrow(
                 () -> new DomainException("Collection box not found.", HttpStatus.NOT_FOUND));
+    }
+
+    private CollectionBox verifyCollectionBoxInput(String collectionBoxId, String charityEventName) {
+        if (collectionBoxId == null || collectionBoxId.isBlank()) {
+            throw new DomainException("Collection box ID cannot be null or blank.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (charityEventName == null || charityEventName.isBlank()) {
+            throw new DomainException("Charity event name cannot be null or blank.", HttpStatus.BAD_REQUEST);
+        }
+
+        return findCollectionBoxById(collectionBoxId);
     }
 
 }

@@ -21,6 +21,16 @@ public class CollectionBoxEntity {
     @MapKeyEnumerated(EnumType.STRING)
     private Map<Currency, Double> collectedMoney;
 
+    private boolean deleted;
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     public CollectionBoxEntity() {
 
     }

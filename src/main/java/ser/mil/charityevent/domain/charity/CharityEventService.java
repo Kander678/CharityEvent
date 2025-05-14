@@ -39,4 +39,9 @@ public class CharityEventService {
         charityEventRepository.save(charityEvent);
         return charityEvent;
     }
+
+    public CharityEvent getCharityEventByName(String name) {
+        return charityEventRepository.findCharityEventByName(name).orElseThrow(
+                () -> new DomainException("CharityEvent not found.", HttpStatus.NOT_FOUND));
+    }
 }

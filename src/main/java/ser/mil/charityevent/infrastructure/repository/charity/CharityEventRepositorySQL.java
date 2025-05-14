@@ -6,6 +6,7 @@ import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Component
 public class CharityEventRepositorySQL implements CharityEventRepository {
@@ -26,18 +27,28 @@ public class CharityEventRepositorySQL implements CharityEventRepository {
         return charityRepository.existsByName(name);
     }
 
-    public CharityEvent getCharityEventByName(String name) {
-        return mapCharityEvent(charityRepository.getCharityEventByName(name));
+    public Optional<CharityEvent> findCharityEventByName(String name) {
+        return charityRepository.findByName(name)
+                .map(this::mapCharityEvent);
     }
 
 
     private CharityEventEntity mapCharityEventEntity(CharityEvent charityEvent) {
-        return new CharityEventEntity(charityEvent.id(), charityEvent.name(), charityEvent.account().currency());
+        CharityEventEntity entity = new CharityEventEntity();
+        entity.setId(charityEvent.id());
+        entity.setName(charityEvent.name());
+        entity.setCurrency(charityEvent.account().currency());
+        entity.setBalance(charityEvent.account().balance().doubleValue());
+        return entity;
     }
+
 
     private CharityEvent mapCharityEvent(CharityEventEntity entity) {
-        return new CharityEvent(entity.getId(), entity.getName(), new Account(BigDecimal.ZERO, entity.getCurrency()));
+        return new CharityEvent(
+                entity.getId(),
+                entity.getName(),
+                new Account(BigDecimal.valueOf(entity.getBalance()), entity.getCurrency())
+        );
     }
-
 
 }

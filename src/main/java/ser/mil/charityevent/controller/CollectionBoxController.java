@@ -1,6 +1,7 @@
 package ser.mil.charityevent.controller;
 
 import org.springframework.web.bind.annotation.*;
+import ser.mil.charityevent.controller.mapper.CollectionBoxMapper;
 import ser.mil.charityevent.controller.request.CollectionBoxAddMoneyRequest;
 import ser.mil.charityevent.controller.request.CollectionBoxPairRequest;
 import ser.mil.charityevent.controller.request.CollectionBoxRequest;
@@ -42,7 +43,20 @@ public class CollectionBoxController {
 
     @GetMapping("/getAll")
     public List<CollectionBoxResponse> getAllCollectionBoxes() {
-        return collectionBoxService.getAllDto();
+        return collectionBoxService.getAll().stream()
+                .map(CollectionBoxMapper::toDto)
+                .toList();
+    }
+
+    @PostMapping("/convert")
+    public void convertMoney(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
+        collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
+                collectionBoxPairRequest.collectionBoxId(), collectionBoxPairRequest.charityEventName());
+    }
+
+    @DeleteMapping("/delete")
+    public void deleteCollectionBox(@RequestParam String collectionBoxId) {
+        collectionBoxService.deleteCollectionBox(collectionBoxId);
     }
 
 }
