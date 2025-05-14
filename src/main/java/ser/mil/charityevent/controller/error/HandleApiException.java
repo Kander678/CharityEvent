@@ -44,5 +44,4 @@ public class HandleApiException {
         ExceptionError error = new ExceptionError(message, LocalDateTime.now(), HttpStatus.BAD_REQUEST.value());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
-
 }
