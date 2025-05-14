@@ -3,8 +3,6 @@ package ser.mil.charityevent.domain.box;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import ser.mil.charityevent.controller.mapper.CollectionBoxMapper;
-import ser.mil.charityevent.controller.response.CollectionBoxResponse;
 import ser.mil.charityevent.domain.Currency;
 import ser.mil.charityevent.domain.CurrencyExchangeService;
 import ser.mil.charityevent.domain.box.model.CollectionBox;
@@ -19,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class CollectionBoxService {
@@ -56,10 +53,7 @@ public class CollectionBoxService {
     public void pairCollectionBoxWithCharityEvent(String collectionBoxId, String charityEventName) {
         CollectionBox collectionBox = verifyCollectionBoxInput(collectionBoxId, charityEventName);
 
-        CharityEvent charityEvent = charityEventService.findCharityEventByName(charityEventName);
-        if (charityEvent == null) {
-            throw new DomainException("Charity event not found.", HttpStatus.NOT_FOUND);
-        }
+        CharityEvent charityEvent = charityEventService.getCharityEventByName(charityEventName);
 
         verifyCollectionBoxCanPair(collectionBox);
 
@@ -103,10 +97,7 @@ public class CollectionBoxService {
             throw new DomainException("Collection box is deleted.", HttpStatus.CONFLICT);
         }
 
-        CharityEvent charityEvent = charityEventService.findCharityEventByName(charityEventName);
-        if (charityEvent == null) {
-            throw new DomainException("Charity event not found.", HttpStatus.NOT_FOUND);
-        }
+        CharityEvent charityEvent = charityEventService.getCharityEventByName(charityEventName);
 
         Currency targetCurrency = charityEvent.getAccount().currency();
         Map<Currency, Double> collected = collectionBox.getCollectedMoney();

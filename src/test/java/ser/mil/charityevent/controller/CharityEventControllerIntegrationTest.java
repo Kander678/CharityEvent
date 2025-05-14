@@ -19,8 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class CharityEventControllerIntegrationTest {
     @Autowired
     private WebTestClient webTestClient;
-    @Autowired
-    private CharityEventRepository charityEventRepository;
+
     @Autowired
     private CharityEventService charityEventService;
 
@@ -39,7 +38,7 @@ class CharityEventControllerIntegrationTest {
                 .expectStatus().isOk();
 
         //Then
-        CharityEvent saved = charityEventService.findCharityEventByName(charityEventRequest.name());
+        CharityEvent saved = charityEventService.getCharityEventByName(charityEventRequest.name());
         assertNotNull(saved);
         assertEquals(name, saved.name());
         assertEquals(currency, saved.account().currency());

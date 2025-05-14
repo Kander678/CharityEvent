@@ -40,7 +40,7 @@ public class CharityEventService {
         return charityEvent;
     }
 
-    public CharityEvent findCharityEventByName(String name) {
+    public CharityEvent getCharityEventByName(String name) {
         return charityEventRepository.findCharityEventByName(name).orElseThrow(
                 () -> new DomainException("CharityEvent not found.", HttpStatus.NOT_FOUND));
     }

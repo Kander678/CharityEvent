@@ -15,7 +15,10 @@ import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.exception.DomainException;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,12 +67,12 @@ class CollectionBoxServiceTest {
         String eventName = "Charity";
 
         CollectionBox box = mock(CollectionBox.class);
-        CharityEvent event = new CharityEvent("1",eventName, null);
+        CharityEvent event = new CharityEvent("1", eventName, null);
 
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(true);
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
-        when(charityEventService.findCharityEventByName(eventName)).thenReturn(event);
+        when(charityEventService.getCharityEventByName(eventName)).thenReturn(event);
 
         //When
         collectionBoxService.pairCollectionBoxWithCharityEvent(boxId, eventName);
@@ -88,7 +91,7 @@ class CollectionBoxServiceTest {
 
         CollectionBox box = mock(CollectionBox.class);
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.ofNullable(box));
-        when(charityEventService.findCharityEventByName(eventName)).thenReturn(new CharityEvent("1",eventName, null));
+        when(charityEventService.getCharityEventByName(eventName)).thenReturn(new CharityEvent("1", eventName, null));
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(false);
 
@@ -107,7 +110,7 @@ class CollectionBoxServiceTest {
         Currency currency = Currency.PLN;
 
         CollectionBox box = new CollectionBox(boxId, false, true, new HashMap<>());
-        box.setCharityEvent(new CharityEvent("1","Test", null));
+        box.setCharityEvent(new CharityEvent("1", "Test", null));
 
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
 
@@ -157,7 +160,7 @@ class CollectionBoxServiceTest {
         CharityEvent event = new CharityEvent("1", eventName, account);
 
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
-        when(charityEventService.findCharityEventByName(eventName)).thenReturn(event);
+        when(charityEventService.getCharityEventByName(eventName)).thenReturn(event);
 
         // When
         collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(boxId, eventName);
@@ -186,6 +189,7 @@ class CollectionBoxServiceTest {
         assertTrue(box.isDeleted());
         verify(collectionBoxRepository).save(box);
     }
+
     @Test
     void shouldThrow_whenCollectionBoxNotFound() {
         //Given
@@ -204,6 +208,7 @@ class CollectionBoxServiceTest {
     void shouldThrow_whenBoxIsDeleted() {
         //Given
         CollectionBox box = new CollectionBox("id", true, false, new HashMap<>());
+        box.setDeleted(true);
         when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
 
         //When
@@ -212,23 +217,7 @@ class CollectionBoxServiceTest {
                         "id", "Event"));
 
         //Then
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
-    }
-
-    @Test
-    void shouldThrow_whenCharityEventNotFound() {
-        //Given
-        CollectionBox box = new CollectionBox("id", false, false, new HashMap<>());
-        when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
-        when(charityEventService.findCharityEventByName("Missing")).thenReturn(null);
-
-        //When
-        DomainException ex = assertThrows(DomainException.class,
-                () -> collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
-                        "id", "Missing"));
-
-        //Then
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
     }
 
     @Test
@@ -242,7 +231,7 @@ class CollectionBoxServiceTest {
         CharityEvent event = new CharityEvent("1", "E", account);
 
         when(collectionBoxRepository.findById("id")).thenReturn(Optional.of(box));
-        when(charityEventService.findCharityEventByName("E")).thenReturn(event);
+        when(charityEventService.getCharityEventByName("E")).thenReturn(event);
 
         //When
         DomainException ex = assertThrows(DomainException.class,

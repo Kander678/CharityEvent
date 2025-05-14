@@ -142,7 +142,7 @@ class CollectionBoxControllerIntegrationTest {
                 .expectStatus().isOk();
 
         //Then
-        BigDecimal balance = charityEventService.findCharityEventByName(charityEventName).getAccount().balance();
+        BigDecimal balance = charityEventService.getCharityEventByName(charityEventName).getAccount().balance();
         assertEquals(0, balance.compareTo(BigDecimal.valueOf(100.0)));
     }
 

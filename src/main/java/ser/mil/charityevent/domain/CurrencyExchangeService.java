@@ -25,12 +25,10 @@ public class CurrencyExchangeService {
             case PLN -> amount;
         };
 
-        double result = switch (to) {
+        return switch (to) {
             case EURO -> amountInPln / euroToPln;
             case USD -> amountInPln / usdToPln;
             case PLN -> amountInPln;
         };
-
-        return result;
     }
 }

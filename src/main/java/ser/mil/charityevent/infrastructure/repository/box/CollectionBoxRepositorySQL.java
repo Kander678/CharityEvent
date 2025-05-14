@@ -39,7 +39,7 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
     @Override
     public List<CollectionBox> getAll() {
         return collectionBoxRepository.findAll().stream()
-                .filter(entity->!entity.isDeleted())
+                .filter(entity -> !entity.isDeleted())
                 .map(this::mapToCollectionBox)
                 .collect(Collectors.toList());
     }
