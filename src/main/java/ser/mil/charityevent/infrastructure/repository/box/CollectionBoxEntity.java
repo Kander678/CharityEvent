@@ -32,7 +32,6 @@ public class CollectionBoxEntity {
     }
 
     public CollectionBoxEntity() {
-
     }
 
     public String getId() {

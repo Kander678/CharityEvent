@@ -26,7 +26,9 @@ public class CollectionBoxService {
     private final CharityEventService charityEventService;
 
     public CollectionBoxService(CollectionBoxRepository collectionBoxRepository,
-                                CharityEventRepository charityEventRepository, CurrencyExchangeService currencyExchangeService, CharityEventService charityEventService) {
+                                CharityEventRepository charityEventRepository,
+                                CurrencyExchangeService currencyExchangeService,
+                                CharityEventService charityEventService) {
         this.collectionBoxRepository = collectionBoxRepository;
         this.charityEventRepository = charityEventRepository;
         this.currencyExchangeService = currencyExchangeService;
@@ -62,7 +64,7 @@ public class CollectionBoxService {
         collectionBoxRepository.save(collectionBox);
     }
 
-    public void addMoneyToCollectionBox(Currency currency, Double amount, String collectionBoxId) {
+    public void addMoneyToCollectionBox(Currency currency, double amount, String collectionBoxId) {
         if (collectionBoxId == null || collectionBoxId.isBlank()) {
             throw new DomainException("Collection box ID cannot be null or blank.", HttpStatus.BAD_REQUEST);
         }
@@ -72,6 +74,11 @@ public class CollectionBoxService {
 
         if (amount <= 0) {
             throw new DomainException("Amount must be greater than 0.", HttpStatus.BAD_REQUEST);
+        }
+
+        BigDecimal amountDecimal = BigDecimal.valueOf(amount);
+        if (amountDecimal.scale() > 2) {
+            throw new DomainException("Amount can have at most two decimal places.", HttpStatus.BAD_REQUEST);
         }
 
         CollectionBox collectionBox = findCollectionBoxById(collectionBoxId);
@@ -139,7 +146,9 @@ public class CollectionBoxService {
             Currency sourceCurrency = entry.getKey();
             double amount = entry.getValue();
 
-            if (amount <= 0) continue;
+            if (amount <= 0) {
+                continue;
+            }
 
             double convertedAmount;
             if (sourceCurrency == targetCurrency) {
@@ -148,19 +157,18 @@ public class CollectionBoxService {
                 convertedAmount = currencyExchangeService.convert(sourceCurrency, targetCurrency, amount);
             }
 
-
             totalInTargetCurrency += convertedAmount;
         }
-        return totalInTargetCurrency;
+        return Math.round(totalInTargetCurrency * 100.0) / 100.0;
     }
-
 
     private void verifyCollectionBoxCanPair(CollectionBox collectionBox) {
         if (collectionBox.isAssigned()) {
             throw new DomainException("Collection box is already assigned to an event.", HttpStatus.CONFLICT);
         }
         if (!collectionBox.isEmpty()) {
-            throw new DomainException("Collection box must be empty before assigning to an event.", HttpStatus.CONFLICT);
+            throw new DomainException(
+                    "Collection box must be empty before assigning to an event.", HttpStatus.CONFLICT);
         }
     }
 
@@ -180,5 +188,4 @@ public class CollectionBoxService {
 
         return findCollectionBoxById(collectionBoxId);
     }
-
 }

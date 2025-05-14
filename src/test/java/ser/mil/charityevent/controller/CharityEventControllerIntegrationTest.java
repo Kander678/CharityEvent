@@ -7,7 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import ser.mil.charityevent.controller.request.CharityEventRequest;
 import ser.mil.charityevent.domain.Currency;
-import ser.mil.charityevent.domain.charity.CharityEventRepository;
 import ser.mil.charityevent.domain.charity.CharityEventService;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 

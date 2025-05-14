@@ -2,6 +2,7 @@ package ser.mil.charityevent.domain.charity;
 
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CharityEventRepository {
@@ -10,4 +11,6 @@ public interface CharityEventRepository {
     boolean existsByName(String name);
 
     Optional<CharityEvent> findCharityEventByName(String name);
+
+    List<CharityEvent> getAllCharityEvents();
 }

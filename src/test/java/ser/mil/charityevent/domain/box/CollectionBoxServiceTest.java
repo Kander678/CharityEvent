@@ -92,6 +92,7 @@ class CollectionBoxServiceTest {
         CollectionBox box = mock(CollectionBox.class);
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.ofNullable(box));
         when(charityEventService.getCharityEventByName(eventName)).thenReturn(new CharityEvent("1", eventName, null));
+        assert box != null;
         when(box.isAssigned()).thenReturn(false);
         when(box.isEmpty()).thenReturn(false);
 

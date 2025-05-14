@@ -21,7 +21,6 @@ public class CharityEventEntity {
     }
 
     public CharityEventEntity() {
-
     }
 
     public String getId() {

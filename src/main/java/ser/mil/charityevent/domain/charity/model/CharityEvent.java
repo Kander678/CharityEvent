@@ -51,8 +51,12 @@ public class CharityEvent {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
         var that = (CharityEvent) obj;
         return Objects.equals(this.id, that.id) &&
                 Objects.equals(this.name, that.name) &&
@@ -71,5 +75,4 @@ public class CharityEvent {
                 "name=" + name + ", " +
                 "account=" + account + ']';
     }
-
 }

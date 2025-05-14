@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
 @Component
 public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
     private final CollectionBoxRepositorySpringData collectionBoxRepository;
@@ -95,5 +94,4 @@ public class CollectionBoxRepositorySQL implements CollectionBoxRepository {
         }
         return entity;
     }
-
 }

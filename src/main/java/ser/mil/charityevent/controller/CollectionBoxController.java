@@ -35,7 +35,6 @@ public class CollectionBoxController {
     public void addMoneyToCollectionBox(
             @RequestBody CollectionBoxAddMoneyRequest collectionBoxAddMoneyRequest,
             @RequestParam String collectionBoxId) {
-
         collectionBoxService.addMoneyToCollectionBox(
                 collectionBoxAddMoneyRequest.currency(),
                 collectionBoxAddMoneyRequest.amount(), collectionBoxId);
@@ -58,5 +57,4 @@ public class CollectionBoxController {
     public void deleteCollectionBox(@RequestParam String collectionBoxId) {
         collectionBoxService.deleteCollectionBox(collectionBoxId);
     }
-
 }
