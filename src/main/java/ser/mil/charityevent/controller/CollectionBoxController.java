@@ -1,5 +1,7 @@
 package ser.mil.charityevent.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ser.mil.charityevent.controller.mapper.CollectionBoxMapper;
 import ser.mil.charityevent.controller.request.CollectionBoxAddMoneyRequest;
@@ -20,41 +22,49 @@ public class CollectionBoxController {
     }
 
     @PostMapping("/create")
-    public String createCollectionBox(@RequestBody CollectionBoxRequest collectionBoxRequest) {
-        return collectionBoxService.addCollectionBox(collectionBoxRequest.currency());
+    public ResponseEntity<String> createCollectionBox(@RequestBody CollectionBoxRequest collectionBoxRequest) {
+        String id = collectionBoxService.addCollectionBox(collectionBoxRequest.currency());
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     @PostMapping("/pair")
-    public void pairCollectionBoxWithCharityEvent(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
+    public ResponseEntity<Void> pairCollectionBoxWithCharityEvent(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
         collectionBoxService.pairCollectionBoxWithCharityEvent(
                 collectionBoxPairRequest.collectionBoxId(),
                 collectionBoxPairRequest.charityEventName());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/add-money")
-    public void addMoneyToCollectionBox(
+    public ResponseEntity<Void> addMoneyToCollectionBox(
             @RequestBody CollectionBoxAddMoneyRequest collectionBoxAddMoneyRequest,
             @RequestParam String collectionBoxId) {
         collectionBoxService.addMoneyToCollectionBox(
                 collectionBoxAddMoneyRequest.currency(),
-                collectionBoxAddMoneyRequest.amount(), collectionBoxId);
+                collectionBoxAddMoneyRequest.amount(),
+                collectionBoxId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/getAll")
-    public List<CollectionBoxResponse> getAllCollectionBoxes() {
-        return collectionBoxService.getAll().stream()
+    public ResponseEntity<List<CollectionBoxResponse>> getAllCollectionBoxes() {
+        List<CollectionBoxResponse> boxes = collectionBoxService.getAll().stream()
                 .map(CollectionBoxMapper::toDto)
                 .toList();
+        return ResponseEntity.ok(boxes);
     }
 
     @PostMapping("/convert")
-    public void convertMoney(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
+    public ResponseEntity<Void> convertMoney(@RequestBody CollectionBoxPairRequest collectionBoxPairRequest) {
         collectionBoxService.transferMoneyFromCollectionBoxToEventAccount(
-                collectionBoxPairRequest.collectionBoxId(), collectionBoxPairRequest.charityEventName());
+                collectionBoxPairRequest.collectionBoxId(),
+                collectionBoxPairRequest.charityEventName());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/delete")
-    public void deleteCollectionBox(@RequestParam String collectionBoxId) {
+    public ResponseEntity<Void> deleteCollectionBox(@RequestParam String collectionBoxId) {
         collectionBoxService.deleteCollectionBox(collectionBoxId);
+        return ResponseEntity.ok().build();
     }
 }

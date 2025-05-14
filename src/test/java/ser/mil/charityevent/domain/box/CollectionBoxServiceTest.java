@@ -157,7 +157,7 @@ class CollectionBoxServiceTest {
         collected.put(Currency.PLN, 100.0);
 
         CollectionBox box = new CollectionBox(boxId, false, true, collected);
-        Account account = new Account(BigDecimal.valueOf(50.00), Currency.PLN);
+        Account account = new Account(BigDecimal.valueOf(50.0), Currency.PLN);
         CharityEvent event = new CharityEvent("1", eventName, account);
 
         when(collectionBoxRepository.findById(boxId)).thenReturn(Optional.of(box));
@@ -169,7 +169,7 @@ class CollectionBoxServiceTest {
         // Then
         assertTrue(box.isEmpty());
         assertEquals(0.0, box.getCollectedMoney().get(Currency.PLN));
-        assertEquals(BigDecimal.valueOf(150.00), event.getAccount().balance());
+        assertEquals(0, event.getAccount().balance().compareTo(BigDecimal.valueOf(150.0)));
 
         verify(collectionBoxRepository).save(box);
         verify(charityEventRepository).save(event);

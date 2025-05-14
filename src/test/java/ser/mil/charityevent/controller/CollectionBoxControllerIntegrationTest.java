@@ -54,7 +54,7 @@ class CollectionBoxControllerIntegrationTest {
                 .uri("/collectionBox/create")
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isCreated()
                 .expectBody(String.class)
                 .returnResult()
                 .getResponseBody();
@@ -169,7 +169,7 @@ class CollectionBoxControllerIntegrationTest {
                 .uri("/collectionBox/create")
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isOk()
+                .expectStatus().isCreated()
                 .expectBody(String.class)
                 .returnResult()
                 .getResponseBody();

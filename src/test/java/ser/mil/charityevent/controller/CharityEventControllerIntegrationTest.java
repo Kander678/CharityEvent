@@ -34,7 +34,7 @@ class CharityEventControllerIntegrationTest {
                 .uri("/charity-event/create")
                 .bodyValue(charityEventRequest)
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isCreated();
 
         //Then
         CharityEvent saved = charityEventService.getCharityEventByName(charityEventRequest.name());
@@ -65,7 +65,7 @@ class CharityEventControllerIntegrationTest {
                 .uri("/charity-event/create")
                 .bodyValue(charityEventRequest)
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isCreated();
 
         //When //Then
         webTestClient.post()

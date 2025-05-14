@@ -1,5 +1,7 @@
 package ser.mil.charityevent.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ser.mil.charityevent.controller.mapper.FinancialReportMapper;
 import ser.mil.charityevent.controller.request.CharityEventRequest;
@@ -18,14 +20,16 @@ public class CharityEventController {
     }
 
     @PostMapping("/create")
-    public void addCharityEvent(@RequestBody CharityEventRequest charityEventRequest) {
+    public ResponseEntity<Void> addCharityEvent(@RequestBody CharityEventRequest charityEventRequest) {
         charityEventService.addCharityEvent(charityEventRequest.name(), charityEventRequest.currency());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/financialRaport")
-    public List<FinancialReportResponse> financialRaport() {
-        return charityEventService.getAllCharityEvents().stream()
+    public ResponseEntity<List<FinancialReportResponse>> financialRaport() {
+        List<FinancialReportResponse> reports = charityEventService.getAllCharityEvents().stream()
                 .map(FinancialReportMapper::toDto)
                 .toList();
+        return ResponseEntity.ok(reports);
     }
 }
