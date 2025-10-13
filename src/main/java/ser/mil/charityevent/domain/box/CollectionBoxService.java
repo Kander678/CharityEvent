@@ -11,6 +11,9 @@ import ser.mil.charityevent.domain.charity.CharityEventService;
 import ser.mil.charityevent.domain.charity.model.Account;
 import ser.mil.charityevent.domain.charity.model.CharityEvent;
 import ser.mil.charityevent.domain.exception.DomainException;
+import ser.mil.charityevent.domain.middleware.model.Middleware;
+import ser.mil.charityevent.domain.middleware.model.ValidationContext;
+import ser.mil.charityevent.domain.middleware.validation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,6 +29,8 @@ public class CollectionBoxService {
     private final CharityEventRepository charityEventRepository;
     private final CurrencyExchangeService currencyExchangeService;
     private final CharityEventService charityEventService;
+    private final Middleware addMoneyChain;
+
 
     public CollectionBoxService(CollectionBoxRepository collectionBoxRepository,
                                 CharityEventRepository charityEventRepository,
@@ -35,6 +40,15 @@ public class CollectionBoxService {
         this.charityEventRepository = charityEventRepository;
         this.currencyExchangeService = currencyExchangeService;
         this.charityEventService = charityEventService;
+
+        this.addMoneyChain = Middleware.link(
+                new BoxIdNotBlankMiddleware(),
+                new CurrencyNotNullMiddleware(),
+                new AmountPositiveMiddleware(),
+                new AmountScaleMiddleware(),
+                new BoxAssignedMiddleware(),
+                new BoxNotDeletedMiddleware()
+        );
     }
 
     public String addCollectionBox(Currency currency) {
@@ -67,30 +81,12 @@ public class CollectionBoxService {
     }
 
     public void addMoneyToCollectionBox(Currency currency, double amount, String collectionBoxId) {
-        if (collectionBoxId == null || collectionBoxId.isBlank()) {
-            throw new DomainException("Collection box ID cannot be null or blank.", HttpStatus.BAD_REQUEST);
-        }
-        if (currency == null) {
-            throw new DomainException("Currency cannot be null.", HttpStatus.BAD_REQUEST);
+        ValidationContext ctx=new ValidationContext(collectionBoxId,currency,amount,collectionBoxRepository);
+        if(!addMoneyChain.check(ctx)){
+            return;
         }
 
-        if (amount <= 0) {
-            throw new DomainException("Amount must be greater than 0.", HttpStatus.BAD_REQUEST);
-        }
-
-        BigDecimal amountDecimal = BigDecimal.valueOf(amount);
-        if (amountDecimal.scale() > 2) {
-            throw new DomainException("Amount can have at most two decimal places.", HttpStatus.BAD_REQUEST);
-        }
-
-        CollectionBox collectionBox = findCollectionBoxById(collectionBoxId);
-
-        if (collectionBox.getCharityEvent() == null) {
-            throw new DomainException("Collection box is not assigned to any charity event.", HttpStatus.CONFLICT);
-        }
-        if (collectionBox.isDeleted()) {
-            throw new DomainException("Collection box is deleted.", HttpStatus.CONFLICT);
-        }
+        CollectionBox collectionBox=ctx.getCollectionBox();
 
         Map<Currency, Double> map = collectionBox.getCollectedMoney();
         map.put(currency, map.getOrDefault(currency, 0.0) + amount);
